@@ -6,13 +6,13 @@ on:
 jobs:
 
 # ROLE TESTS
-  minimal_root_setup:
+  apache2:
     runs-on: ubuntu-latest
     env:
       NO_TTY: "1"
     steps:
       - uses: actions/checkout@v3
-      - run: .test/test_role.sh minimal_root_setup -vvv
+      - run: .test/test_role.sh apache2 -vvv
 
   elasticsearch:
     runs-on: ubuntu-latest
@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v3
       - run: .test/test_role.sh elasticsearch -vvv
 
-  tomcat:
+  files:
     runs-on: ubuntu-latest
     env:
       NO_TTY: "1"
     steps:
       - uses: actions/checkout@v3
-      - run: .test/test_role.sh tomcat -vvv
+      - run: .test/test_role.sh files -vvv
 
   java:
     runs-on: ubuntu-latest
@@ -38,6 +38,14 @@ jobs:
       - uses: actions/checkout@v3
       - run: .test/test_role.sh java -vvv
 
+  minimal_root_setup:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh minimal_root_setup -vvv
+
   postgresql:
     runs-on: ubuntu-latest
     env:
@@ -46,21 +54,13 @@ jobs:
       - uses: actions/checkout@v3
       - run: .test/test_role.sh postgresql -vvv
 
-  apache2:
+  tomcat:
     runs-on: ubuntu-latest
     env:
       NO_TTY: "1"
     steps:
       - uses: actions/checkout@v3
-      - run: .test/test_role.sh apache2 -vvv
-
-  files:
-    runs-on: ubuntu-latest
-    env:
-      NO_TTY: "1"
-    steps:
-      - uses: actions/checkout@v3
-      - run: .test/test_role.sh files -vvv
+      - run: .test/test_role.sh tomcat -vvv
 
 # CUSTOM TESTS
   tomcat_apache2:
