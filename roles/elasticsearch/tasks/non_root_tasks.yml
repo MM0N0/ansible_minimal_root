@@ -1,0 +1,168 @@
+
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+##############
+# DEPLOYMENT #
+##############
+
+- name: create es base dir
+  become_user: "{{ es_user }}"
+  file:
+    path:   "{{ es_base_dir }}"
+    owner:  "{{ es_user }}"
+    group:  "{{ es_group }}"
+    state:  "directory"
+    mode:   "0755"
+
+- name: deploy es
+  become_user: "{{ es_user }}"
+  unarchive:
+    src:    "{{ local_downloaded_es_archive }}"
+    dest:   "{{ es_base_dir }}"
+    owner:  "{{ es_user }}"
+    group:  "{{ es_group }}"
+    mode:   "0755"
+    exclude: |
+      {{
+        es_templates | default([]) | map(attribute='dest') |
+        union([
+          "snapshot_cache/**",
+          "logs/**",
+
+          "_state/**",
+          "indices/**",
+
+          "config/users",
+          "config/users_roles",
+          "config/role_mapping.yml",
+          "config/roles.yml",
+
+          "node.lock"
+        ])
+      }}
+  when: not ansible_check_mode
+  notify:
+    - restart elasticsearch
+
+- name: set es to current
+  become_user: "{{ es_user }}"
+  file:
+    src:    "{{ es_base_dir }}/{{ es_dirname }}"
+    dest:   "{{ es_base_dir }}/current"
+    state:  "link"
+  notify:
+    - restart elasticsearch
+
+- name: Make sure destination dirs for configs exists
+  become_user: "{{ es_user }}"
+  file:
+    path: "{{ es_base_dir }}/current/{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ es_templates | default([]) }}"
+
+- name: deploy config templates
+  become_user: "{{ es_user }}"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ es_base_dir }}/current/{{ item.dest }}"
+    owner:  "{{ es_user }}"
+    group:  "{{ es_group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ es_templates | default([]) }}"
+  notify:
+    - restart elasticsearch
+
+- name: make sure file exists
+  become_user:    "{{ es_user }}"
+  changed_when:   "False"
+  file:
+    path: "{{ es_base_dir }}/current/{{ item }}"
+    state: touch
+  with_items:
+    - config/users
+    - config/users_roles
+    - config/role_mapping.yml
+    - config/roles.yml
+
+###########################
+# SETUP - USERS AND ROLES #
+###########################
+
+- name: "check if admin_user: {{ es_admin_username }} exists"
+  become_user:    "{{ es_user }}"
+  changed_when:   "False"
+  failed_when:    "False"
+  shell: "{{ es_base_dir }}/current/bin/elasticsearch-users list | grep -cE '^{{ es_admin_username }}[ ]+:'"
+  register: "user_exists"
+
+- name: start service
+  become_user:    "{{ es_user }}"
+  changed_when:   "False"
+  command: "sudo systemctl restart elasticsearch.service"
+  when: user_exists.stdout=='0'
+
+- name: "userdel admin_user: {{ es_admin_username }} to recreate"
+  become_user:    "{{ es_user }}"
+  changed_when:   "False"
+  shell: |
+    unset HISTFILE;
+    {{ es_base_dir }}/current/bin/elasticsearch-users userdel {{ es_admin_username }}
+  when: user_exists.stdout=='1'
+
+- name: "create admin_user: {{ es_admin_username }}"
+  become_user:    "{{ es_user }}"
+  changed_when:   user_exists.stdout=='0'
+  shell: |
+    unset HISTFILE;
+    {{ es_base_dir }}/current/bin/elasticsearch-users useradd {{ es_admin_username }} -p {{ es_admin_password }} -r superuser
+
+- name: restart service
+  become_user:    "{{ es_user }}"
+  changed_when:   "False"
+  ignore_errors:  "true"
+  command: "sudo systemctl restart elasticsearch.service"
+  when: user_exists.stdout=='0'
+
+- name: wait until elasticsearch is ready
+  become_user: "{{ es_user }}"
+  shell: |
+    unset HISTFILE;
+    curl -s -I -u '{{ es_admin_username }}:{{ es_admin_password }}' -XGET -H 'Content-Type: application/json' \
+      'http://localhost:9200' \
+      | grep HTTP | grep -c 200
+  no_log: "True"
+  changed_when: "False"
+  register: result
+  until: result.stdout == '1'
+  retries: 30
+  delay: 3
+
+- name: create roles
+  become_user: "{{ es_user }}"
+  shell: |
+    unset HISTFILE;
+    curl -s -u '{{ es_admin_username }}:{{ es_admin_password }}' -XPOST -H 'Content-Type: application/json' \
+      'http://localhost:9200/_security/role/{{ item.name }}' \
+      -d '{{ lookup('template', item.template) }}'
+  register: result
+  changed_when: result.stdout =='{"role":{"created":true}}'
+  when: not ansible_check_mode
+  with_items: "{{ es_create_role_templates | default([]) }}"
+  notify:
+    - restart elasticsearch
+
+- name: create users
+  become_user: "{{ es_user }}"
+  shell: | 
+    unset HISTFILE; 
+    curl -s -u '{{ es_admin_username }}:{{ es_admin_password }}' -XPOST -H 'Content-Type: application/json' \
+      'http://localhost:9200/_security/user/{{ item.user }}' \
+      -d '{"password": "{{ item.password }}", "roles": {{ item.roles }}, "full_name": "{{ item.full_name }}", "email": "{{ item.email }}"}'
+  register: result
+  changed_when: result.stdout =='{"created":true}'
+  when: not ansible_check_mode
+  with_items: "{{ es_create_user_templates | default([]) }}"
+  notify:
+    - restart elasticsearch

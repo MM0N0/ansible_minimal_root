@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+
+  server:
+    image: mm0n0/ubuntu_ansible_test_host:v1
+    container_name: test_host
+    expose:
+      - "22"
+      - "5432"
+      - "8080"
+      - "80"
+      - "443"
+    ports:
+      - "2022:22"
+      - "5555:5432"
+      - "8080:8080"
+      - "80:80"
+      - "443:443"

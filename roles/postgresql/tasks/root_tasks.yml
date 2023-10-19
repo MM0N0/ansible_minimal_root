@@ -1,0 +1,77 @@
+---
+- name: root - create pg_group
+  group:
+    name: "{{ pg_group }}"
+    state: present
+
+- name: root - create user 'postgres'
+  user:
+    name:   "postgres"
+    group:  "{{ pg_group }}"
+    state: present
+
+- name: root - adding user 'postgres' to pg_group '{{ pg_group }}'
+  user:
+    name:   "postgres"
+    groups: "{{ pg_group }}"
+    append: yes
+  when: not ansible_check_mode
+
+- name: root - add control of postgresql service to sudoers for pg_group '{{ pg_group }}'
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ pg_group }} ALL=(root) NOPASSWD:/usr/sbin/service postgresql *"
+#
+- name: root - add switch to postgresql_user to sudoers for devops_group
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ devops_group }} ALL=(postgres) NOPASSWD:ALL"
+
+- name: root - gather 'platform' facts
+  setup:
+    gather_subset:
+      - platform
+  when: ansible_distribution is not defined
+
+# catch non Ubuntu systems
+- name: root - fail, if host is no ubuntu system
+  ansible.builtin.fail:
+    msg: host is no ubuntu system, this role is only supporting ubuntu hosts.
+  when: ansible_distribution != "Ubuntu"
+
+# UBUNTU - START
+- name: root - apt - update System Packages
+  apt:
+    upgrade: true
+    update_cache: true
+  when: ansible_distribution == "Ubuntu"
+
+- name: root - apt - install dependencies ( creates user "postgres" as well )
+  apt:
+    pkg:
+      - postgresql
+      - postgresql-contrib
+      - postgresql-client
+      - python3-pip
+      - acl
+    state: latest
+    update_cache: true
+  when: ansible_distribution == "Ubuntu"
+
+- name: root - pip - install required python packages
+  pip:
+    name:
+      - psycopg2-binary
+      - setuptools
+  when: ansible_distribution == "Ubuntu"
+# UBUNTU - END

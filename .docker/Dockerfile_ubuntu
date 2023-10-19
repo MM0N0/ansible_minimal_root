@@ -1,0 +1,41 @@
+FROM docker.io/ubuntu:latest
+RUN apt-get update
+RUN apt-get upgrade -y
+
+RUN apt install -y openssh-server sudo python2 acl curl
+
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 user
+
+# Set up configuration for SSH
+RUN mkdir /var/run/sshd
+RUN echo 'root:root' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise, user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+RUN service ssh start
+
+# add user
+RUN groupadd -g 1000 user
+RUN usermod -aG user user
+RUN usermod -aG sudo user
+RUN echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN echo "user:user" | chpasswd
+
+# set root passwd
+RUN echo "root:root" | chpasswd
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+
+EXPOSE 22
+
+# systemd replacement script
+# source: https://github.com/gdraheim/docker-systemctl-replacement/tree/master
+COPY systemctl.py /usr/bin/systemctl
+RUN chmod +x /usr/bin/systemctl
+
+ENTRYPOINT /usr/sbin/sshd -D
+CMD /usr/bin/systemctl

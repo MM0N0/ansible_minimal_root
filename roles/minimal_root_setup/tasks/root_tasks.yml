@@ -1,0 +1,23 @@
+---
+- name: root - create devops_group
+  group:
+    name: "{{ devops_group }}"
+    state: present
+
+- name: root - adding user '{{ devops_user }}' to devops_group '{{ devops_group }}'
+  user:
+    name: "{{ devops_user }}"
+    groups: "{{ devops_group }}"
+    append: yes
+  when: devops_user is defined and not ansible_check_mode
+
+- name: root - create application base dir
+  file:
+    path: "{{ base_dir }}"
+    state: directory
+    owner: root
+    group: "{{ devops_group }}"
+    mode: "0777"
+
+- name: root - reset ssh connection
+  meta: reset_connection

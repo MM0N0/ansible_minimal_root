@@ -1,0 +1,118 @@
+---
+- name: "root - create apache2_group: '{{ apache2_group }}'"
+  group:
+    name: "{{ apache2_group }}"
+    state: present
+
+- name: "root - create apache2_user '{{ apache2_user }}'"
+  user:
+    name:   "{{ apache2_user }}"
+    group:  "{{ apache2_group }}"
+    state: present
+
+- name: "root - add control of apache2 service to sudoers for apache2_group: '{{ apache2_group }}'"
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ apache2_group }} ALL=(root) NOPASSWD:/usr/sbin/service apache2 *"
+
+- name: root - add switch to apache2_user to sudoers for apache2_group
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ devops_group }} ALL=({{ apache2_user }}) NOPASSWD:ALL"
+
+- name: root - gather 'platform' facts
+  setup:
+    gather_subset:
+      - platform
+  when: ansible_distribution is not defined
+
+# UBUNTU - START
+# tasks file for apache_http_server
+- name: root - install dependencies
+  apt:
+    pkg:
+      - apache2
+      - python3-passlib
+    state: present
+    update_cache: true
+  when: ansible_distribution == "Ubuntu"
+
+- name: root - enable apache2 modules
+  community.general.apache2_module:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - ssl
+    - headers
+    - proxy_ajp
+    - proxy_http
+    - proxy_wstunnel
+    - remoteip
+    - rewrite
+  when: ansible_distribution == "Ubuntu"
+# UBUNTU - END
+
+- name: root - remove default files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /var/www/html/index.html
+
+- name: root - remove default vhosts
+  file:
+    path: "/etc/apache2/sites-enabled/{{ item }}"
+    state: absent
+  with_items:
+    - 000-default.conf
+    - default-ssl.conf
+
+- name: root - change conf directory owner and permissions
+  file:
+    path:     "/etc/apache2"
+    state:    "directory"
+    recurse:  "true"
+    owner:    "{{ apache2_user }}"
+    group:    "{{ apache2_group }}"
+    mode:     "0774"
+
+- name: root - change log directory owner and permissions
+  changed_when: "false"
+  shell: |
+    chown {{ apache2_user }}:{{ apache2_group }} /var/log/apache2
+    chmod 774 /var/log/apache2
+    setfacl -d -m u::rwX,g::rwX,o::- /var/log/apache2
+
+# let 'www-data' own the directory, because apache2 is running as this user
+- name: root - change www directory owner and permissions
+  file:
+    path:     "/var/www/html"
+    state:    "directory"
+    recurse:  "true"
+    owner:    "www-data"
+    group:    "{{ apache2_group }}"
+    mode:     "0774"
+
+- name: root - make sure root config dirs exists
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ apache2_root_templates | default([]) }}"
+
+- name: root - deploy root config templates
+  template:
+    src:    "{{ item.src }}"
+    mode:   "{{ item.mode }}"
+    dest:   "{{ item.dest }}"
+  with_items: "{{ apache2_root_templates | default([]) }}"
+

@@ -1,0 +1,4 @@
+---
+- name: restart postgresql
+  become_user:    "postgres"
+  ansible.builtin.command: "sudo service postgresql restart"

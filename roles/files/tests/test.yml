@@ -1,0 +1,71 @@
+---
+- name: site
+  gather_facts: no
+  hosts: test_host
+  become: yes
+  become_method: sudo
+  vars:
+    base_dir:     "/applications"
+    devops_group: "devops"
+  roles:
+    - name: minimal_root_setup
+      vars:
+        devops_user: "{{ ansible_user }}"
+
+    - role: files
+      vars:
+
+        root_files:
+          - { src: "{{ playbook_dir }}/templates/test_root_file", owner: "root", group: "root", mode: "755", dest: "/etc/test_root_file" }
+        root_templates:
+          - { src: "{{ playbook_dir }}/templates/template_test_root_file", owner: "root", group: "root", mode: "755", dest: "/etc/template_test_root_file" }
+        root_line_in_file:
+          - { path: "/tmp/root_file", owner: "root", group: "root", mode: "755", line: "# TEST" }
+
+        files:
+          - { src: "{{ playbook_dir }}/templates/test_file",      owner: "user", group: "user", mode: "755", dest: "{{ base_dir }}/aaa/test_file" }
+        templates:
+          - { src: "{{ playbook_dir }}/templates/template_test_file",      owner: "user", group: "user", mode: "755", dest: "{{ base_dir }}/aaa/template_test_file" }
+        line_in_file:
+          - { path: "/tmp/user_file", owner: "user", group: "user", mode: "755", line: "# TEST" }
+
+      tags: [files]
+      when: ('files' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+  # post roles checks
+  tasks:
+
+    # check file properties
+    - name: set facts
+      set_fact:
+        file_list: |
+          {{
+            root_files | default([])
+            | union( root_templates | default([]) )
+            | union( files | default([]) )
+            | union( templates | default([]) )
+          }}
+    - name: get stat of files
+      ansible.builtin.stat:
+        path: "{{ item.dest }}"
+      with_items: "{{file_list}}"
+      register: file_stats
+    - name: test - check properties of files
+      assert:
+        that:
+          - item.1.stat.exists == true
+          - item.1.stat.isdir == false
+          # test if 1.stat.mode contains 0.mode (1.stat.mode adds leading 0 -> 0775)
+          - item.1.stat.mode.find(item.0.mode) > -1
+          - item.1.stat.pw_name == item.0.owner
+          - item.1.stat.gr_name == item.0.group
+        fail_msg: "some property were not properly set"
+        success_msg: "all properties were properly set"
+      loop: "{{ file_list | zip(file_stats.results) | list }}"
+      loop_control:
+        label: "{{ item.0.dest }}"
+
+    # TODO: check file content - templates
+
+
+    # TODO: check file content - lineinfile

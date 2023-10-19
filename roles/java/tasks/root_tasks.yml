@@ -1,0 +1,24 @@
+---
+- name: root - create java_group
+  group:
+    name:   "{{ java_group }}"
+    state:  "present"
+  tags: [root_tasks]
+
+- name: root - create java_user
+  user:
+    name:   "{{ java_user }}"
+    group:  "{{ java_group }}"
+    state:  "present"
+  tags: [root_tasks]
+
+- name: root - add switch to java_user to sudoers for devops_group
+  lineinfile:
+    dest:     "/etc/sudoers"
+    state:    "present"
+    regexp:   "{{ sudoers_line }}"
+    line:     "{{ sudoers_line }}"
+    validate: "visudo -cf %s"
+  vars:
+    sudoers_line: "%{{ devops_group }} ALL=({{ java_user }}) NOPASSWD:ALL"
+  tags: [root_tasks]

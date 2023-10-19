@@ -1,0 +1,13 @@
+[Unit]
+Description=elasticsearch service
+
+[Service]
+Type=simple
+
+User={{ es_user }}
+Group={{ es_group }}
+
+ExecStart={{ es_base_dir }}/current/bin/elasticsearch
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,60 @@
+---
+- name: Make sure destination dirs exists
+  become_user: "{{ item.owner }}"
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: |
+    {{ 
+      root_files     | default([]) | union( 
+      root_templates | default([]) 
+      ) 
+    }}
+
+- name: Make sure destination dirs exists
+  become_user: "{{ item.owner }}"
+  file:
+    path: "{{ item.path | dirname }}"
+    state: directory
+  with_items: |
+    {{ 
+      root_line_in_file | default([])
+    }}
+
+- name: deploy root_files
+  become_user: "{{ item.owner }}"
+  copy:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ root_files | default([]) }}"
+
+- name: deploy root_templates
+  become_user: "{{ item.owner }}"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ root_templates | default([]) }}"
+
+- name: touch root_line_in_file files
+  become_user: "{{ item.owner }}"
+  copy:
+    content: ""
+    force: false
+    dest:   "{{ item.path }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ root_line_in_file | default([]) }}"
+
+- name: deploy root_line_in_file
+  become_user: "{{ item.owner }}"
+  lineinfile:
+    path: "{{ item.path }}"
+    line: "{{ item.line }}"
+  with_items: "{{ root_line_in_file | default([]) }}"

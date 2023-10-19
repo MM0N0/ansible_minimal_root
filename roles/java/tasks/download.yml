@@ -1,0 +1,30 @@
+---
+- name: local - create download directory
+  delegate_to: localhost
+  changed_when: "False"
+  file:
+    path:   "{{ local_downloaded }}"
+    state:  "directory"
+
+- name: local - download java
+  delegate_to: localhost
+  changed_when: "False"
+  get_url:
+    url:      "{{ java_download_url }}"
+    checksum: "{{ java_download_checksum }}"
+    dest:     "{{ local_downloaded_java_archive }}"
+    mode:     "0644"
+  when: java_download_username is not defined or java_download_password is not defined
+
+- name: local - download java - with basic auth
+  delegate_to: localhost
+  changed_when: "False"
+  get_url:
+    url:      "{{ java_download_url }}"
+    checksum: "{{ java_download_checksum }}"
+    dest:     "{{ local_downloaded_java_archive }}"
+    mode:     "0644"
+    username: "{{ java_download_username }}"
+    password: "{{ java_download_password }}"
+  no_log: true
+  when: java_download_username is defined and java_download_password is defined

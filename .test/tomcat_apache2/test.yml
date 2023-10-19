@@ -1,0 +1,62 @@
+---
+- name: site
+  gather_facts: no
+  hosts: test_host
+  become: yes
+  become_method: sudo
+  vars:
+    base_dir:     "/applications"
+    devops_group: "devops"
+  roles:
+    - name: minimal_root_setup
+      vars:
+        devops_user: "{{ ansible_user }}"
+
+    - role: java
+      vars:
+        java_base_dir:  "{{ base_dir }}/java"
+        java_user:      "java_user"
+        java_group:     "java_group"
+
+        java_dirname:           "OpenJDK11U-jdk_x64_linux_hotspot_11.0.19_7"
+        java_download_filename: "{{ java_dirname }}.tar.gz"
+        java_download_url:      "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.19%2B7/{{ java_download_filename }}"
+        java_download_checksum: "sha256:5f19fb28aea3e28fcc402b73ce72f62b602992d48769502effe81c52ca39a581"
+
+      tags: [java]
+      when: ('java' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: tomcat
+      vars:
+        tomcat_user:      "tomcat"
+        tomcat_group:     "tomcat"
+        tomcat_base_dir:  "{{ base_dir }}/tomcat"
+
+        tomcat_dirname:           "apache-tomcat-8.5.95"
+        tomcat_download_filename: "{{ tomcat_dirname }}.tar.gz"
+        tomcat_download_url:      "https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.95/bin/{{ tomcat_download_filename }}"
+        tomcat_download_checksum: "sha512:1c36d0de6ef0c1bab090bfb30908f8cf848510ab83d6140890e2e1db001e8a4d0d5982a53c92e4cc7a736de304b22f461706689c48160e24c299dae7a148a673"
+
+        tomcat_webapps: []
+
+        tomcat_templates:
+          - { src: "{{ playbook_dir }}/templates/tomcat/conf/catalina.policy",      mode: "755", dest: "conf/catalina.policy" }
+
+        tags: [tomcat]
+
+    - role: apache2
+      vars:
+        apache2_user:   apache2
+        apache2_group:  apache2
+
+        test_project_apache2_root_templates:
+          - { src: "{{ playbook_dir }}/templates/apache2/test-server.ag.pem", mode: "755", dest: "/etc/pki/tls/test-server.ag.pem" }
+        apache2_templates:
+          - { src: "{{ playbook_dir }}/templates/apache2/conf/apache2.conf.j2", mode: "774", dest: "/etc/apache2/apache2.conf" }
+
+        # these are parameters used in the template files:
+        apache2_domain: "test_stuff.test-server.ag"
+        apache2_max_keep_alive_requests: 123
+
+      tags: [apache2]
+      when: ('apache2' in ansible_run_tags) or ('all_roles' in ansible_run_tags)

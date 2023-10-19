@@ -1,0 +1,11 @@
+- name: site
+  gather_facts: no
+  hosts: "{{set_hosts}}"
+  become: yes
+  become_method: sudo
+  tasks:
+    - lineinfile:
+        path: /etc/sudoers
+        state: absent
+        line: 'user ALL=(ALL) NOPASSWD:ALL'
+        validate: '/usr/sbin/visudo -cf %s'

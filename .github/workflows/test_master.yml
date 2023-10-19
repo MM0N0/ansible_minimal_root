@@ -1,0 +1,73 @@
+name: test master
+on:
+  push:
+    branches:
+      - master
+jobs:
+
+# ROLE TESTS
+  minimal_root_setup:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh minimal_root_setup -vvv
+
+  elasticsearch:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh elasticsearch -vvv
+
+  tomcat:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh tomcat -vvv
+
+  java:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh java -vvv
+
+  postgresql:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh postgresql -vvv
+
+  apache2:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh apache2 -vvv
+
+  files:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/test_role.sh files -vvv
+
+# CUSTOM TESTS
+  tomcat_apache2:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: .test/tomcat_apache2/test.sh -vvv
+

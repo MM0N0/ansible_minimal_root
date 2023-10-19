@@ -1,0 +1,36 @@
+---
+- name: "root - create es_group: '{{ es_group }}'"
+  group:
+    name: "{{ es_group }}"
+    state: present
+
+- name: "root - create es_user '{{ es_user }}'"
+  user:
+    name:   "{{ es_user }}"
+    group:  "{{ es_group }}"
+    state: present
+
+- name: root - create service
+  template:
+    src: "{{ role_path }}/templates/elasticsearch.service.j2"
+    dest: /etc/systemd/system/elasticsearch.service
+
+- name: root - add control of elasticsearch.service to sudoers for es_group '{{ es_group }}'
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ es_group }} ALL=(root) NOPASSWD:/bin/systemctl * elasticsearch.service"
+
+- name: root - add switch to es_user to sudoers for devops_group
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ devops_group }} ALL=({{ es_user }}) NOPASSWD:ALL"

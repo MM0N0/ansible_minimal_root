@@ -1,0 +1,17 @@
+---
+
+- name: local - create download directory
+  delegate_to: localhost
+  changed_when: "False"
+  file:
+    path:   "{{ local_downloaded }}"
+    state:  "directory"
+
+- name: local - download tomcat
+  delegate_to: localhost
+  changed_when: "False"
+  get_url:
+    url:      "{{ tomcat_download_url }}"
+    checksum: "{{ tomcat_download_checksum }}"
+    dest:     "{{ local_downloaded_tomcat_archive }}"
+    mode:     "0755"

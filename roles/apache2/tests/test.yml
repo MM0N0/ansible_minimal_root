@@ -1,0 +1,32 @@
+---
+- name: site
+  gather_facts: no
+  hosts: test_host
+  become: yes
+  become_method: sudo
+  vars:
+    base_dir:     "/applications"
+    devops_group: "devops"
+  roles:
+    - name: minimal_root_setup
+      vars:
+        devops_user: "{{ ansible_user }}"
+
+    - role: apache2
+      vars:
+        apache2_user:   "apache2"
+        apache2_group:  "apache2"
+
+        apache2_templates:
+          - { src: "{{ playbook_dir }}/templates/apache2/apache2.conf.j2",  mode: "774", dest: "/etc/apache2/apache2.conf" }
+          - { src: "{{ playbook_dir }}/templates/apache2/security.conf.j2", mode: "774", dest: "/etc/apache2/conf-enabled/security.conf" }
+
+        apache2_domain: "test_stuff.test-server.ag"
+        apache2_max_keep_alive_requests: 123
+
+      tags: [apache2]
+      when: ('apache2' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+  # post roles checks
+  tasks:
+  # TODO: add role tests

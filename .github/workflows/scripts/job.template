@@ -1,0 +1,8 @@
+  $JOBNAME:
+    runs-on: ubuntu-latest
+    env:
+      NO_TTY: "1"
+    steps:
+      - uses: actions/checkout@v3
+      - run: $JOB_CMD
+

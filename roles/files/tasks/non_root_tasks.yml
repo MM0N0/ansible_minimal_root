@@ -1,0 +1,64 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+- name: Make sure destination dirs exists
+  become_user: "{{ item.owner }}"
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: |
+    {{ 
+      files     | default([]) | union( 
+      templates | default([]) 
+      ) 
+    }}
+
+- name: Make sure destination dirs exists
+  become_user: "{{ item.owner }}"
+  file:
+    path: "{{ item.path | dirname }}"
+    state: directory
+  with_items: |
+    {{ 
+      line_in_file | default([])
+    }}
+
+- name: deploy files
+  become_user: "{{ item.owner }}"
+  copy:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ files | default([]) }}"
+
+- name: deploy templates
+  become_user: "{{ item.owner }}"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ templates | default([]) }}"
+
+- name: touch line_in_file files
+  become_user: "{{ item.owner }}"
+  copy:
+    content: ""
+    force: false
+    dest:   "{{ item.path }}"
+    owner:  "{{ item.owner }}"
+    group:  "{{ item.group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ line_in_file | default([]) }}"
+
+- name: deploy line_in_file
+  become_user: "{{ item.owner }}"
+  lineinfile:
+    path: "{{ item.path }}"
+    line: "{{ item.line }}"
+  with_items: "{{ line_in_file | default([]) }}"

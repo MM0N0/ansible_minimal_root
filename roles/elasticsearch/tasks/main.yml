@@ -1,0 +1,14 @@
+---
+- name: set facts
+  set_fact:
+    local_downloaded: "{{ role_path }}/files/.download"
+    local_downloaded_es_archive:  "{{ role_path }}/files/.download/{{ es_download_filename }}"
+  tags: [always]
+
+- import_tasks: root_tasks.yml
+  tags: [root_tasks]
+  when: "'root_tasks' in ansible_run_tags"
+
+- import_tasks: non_root_tasks.yml
+  tags: [non_root_tasks]
+  when: "'non_root_tasks' in ansible_run_tags"

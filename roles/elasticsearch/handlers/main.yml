@@ -1,0 +1,4 @@
+---
+- name: restart elasticsearch
+  become_user:    "{{ es_user }}"
+  command: "sudo systemctl restart elasticsearch.service"

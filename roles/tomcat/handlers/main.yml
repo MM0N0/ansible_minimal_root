@@ -1,0 +1,4 @@
+---
+- name: restart tomcat
+  become_user:    "{{ tomcat_user }}"
+  ansible.builtin.command: "sudo systemctl restart tomcat.service"

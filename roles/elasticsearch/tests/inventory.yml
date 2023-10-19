@@ -1,0 +1,9 @@
+---
+all:
+  hosts:
+    test_host:
+      ansible_host: localhost
+      ansible_port: 2022
+
+      ansible_user: user
+      ansible_password: user

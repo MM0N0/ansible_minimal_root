@@ -1,0 +1,4 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false

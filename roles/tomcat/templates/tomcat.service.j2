@@ -1,0 +1,17 @@
+[Unit]
+Description=tomcat service
+
+[Service]
+Type=forking
+
+User={{ tomcat_user }}
+Group={{ tomcat_group }}
+
+Environment="JRE_HOME={{ java_base_dir }}/current/"
+
+WorkingDirectory={{ tomcat_base_dir }}/current
+ExecStart={{ tomcat_base_dir }}/current/bin/catalina.sh start
+ExecStop={{ tomcat_base_dir }}/current/bin/catalina.sh stop
+
+[Install]
+WantedBy=multi-user.target

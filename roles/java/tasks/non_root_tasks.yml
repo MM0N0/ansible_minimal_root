@@ -1,0 +1,40 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+- name: create java base dir
+  become_user: "{{ java_user }}"
+  file:
+    path:   "{{ java_base_dir }}"
+    owner:  "{{ java_user }}"
+    group:  "{{ java_group }}"
+    state:  "directory"
+    mode:   "0755"
+
+- name: create java dir
+  become_user: "{{ java_user }}"
+  file:
+    path:   "{{ java_base_dir }}/{{ java_dirname }}"
+    state:  "directory"
+    owner:  "{{ java_user }}"
+    group:  "{{ java_group }}"
+    mode:   "0755"
+
+- name: deploy java
+  become_user: "{{ java_user }}"
+  unarchive:
+    src:    "{{ local_downloaded_java_archive }}"
+    dest:   "{{ java_base_dir }}/{{ java_dirname }}"
+    owner:  "{{ java_user }}"
+    group:  "{{ java_group }}"
+    mode:   "0755"
+    extra_opts: "--strip-components=1"
+  when: not ansible_check_mode
+
+- name: set java to current
+  become_user: "{{ java_user }}"
+  file:
+    src:    "{{ java_base_dir }}/{{ java_dirname }}"
+    dest:   "{{ java_base_dir }}/current"
+    state:  "link"

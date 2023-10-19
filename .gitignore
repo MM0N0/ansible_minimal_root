@@ -1,0 +1,20 @@
+# Apple
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# IntelliJ IDEA
+/.idea/
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Ansible
+*.retry
+
+# download dir in roles
+**/.download/**

@@ -1,0 +1,36 @@
+---
+- name: root - create tomcat_group
+  group:
+    name: "{{ tomcat_group }}"
+    state: present
+
+- name: root - create tomcat_user
+  user:
+    name:   "{{ tomcat_user }}"
+    group:  "{{ tomcat_group }}"
+    state: present
+
+- name: root - create service
+  template:
+    src: "{{ role_path }}/templates/tomcat.service.j2"
+    dest: /etc/systemd/system/tomcat.service
+
+- name: root - add control of tomcat.service to sudoers for tomcat_group '{{ tomcat_group }}'
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ tomcat_group }} ALL=(root) NOPASSWD:/bin/systemctl * tomcat.service"
+
+- name: root - add switch to tomcat_user to sudoers for devops_group
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "{{ sudoers_line }}"
+    line:   "{{ sudoers_line }}"
+    validate: 'visudo -cf %s'
+  vars:
+    sudoers_line: "%{{ devops_group }} ALL=({{ tomcat_user }}) NOPASSWD:ALL"

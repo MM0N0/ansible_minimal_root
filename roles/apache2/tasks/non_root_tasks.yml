@@ -1,0 +1,33 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+- name: Make sure destination dirs for configs exists
+  become_user: "{{ apache2_user }}"
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ apache2_templates | default([]) }}"
+
+- name: deploy config templates
+  become_user: "{{ apache2_user }}"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "{{ apache2_user }}"
+    group:  "{{ apache2_group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ apache2_templates | default([]) }}"
+  notify:
+    - restart apache2
+
+- name: enable configs and vhosts
+  become_user: "{{ apache2_user }}"
+  file:
+    src:    "{{ item.link }}"
+    dest:   "{{ item.target }}"
+    state:  "link"
+  with_items: "{{ apache2_enable | default([]) }}"
+  notify:
+    - restart apache2

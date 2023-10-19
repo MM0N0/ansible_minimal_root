@@ -1,0 +1,60 @@
+---
+- name: site
+  gather_facts: no
+  hosts: test_host
+  become: yes
+  become_method: sudo
+  vars:
+    base_dir:     "/applications"
+    devops_group: "devops"
+  roles:
+    - name: minimal_root_setup
+      vars:
+        devops_user: "{{ ansible_user }}"
+
+    - role: elasticsearch
+      vars:
+        es_user:     "es_user"
+        es_group:    "es_group"
+
+        es_base_dir: "{{ base_dir }}/elasticsearch"
+
+        # artefact data
+        es_dirname:            "elasticsearch-8.9.0"
+        es_download_filename:  "{{ es_dirname }}-linux-x86_64.tar.gz"
+        es_download_url:       "https://artifacts.elastic.co/downloads/elasticsearch/{{ es_download_filename }}"
+        es_download_checksum:  "sha512:https://artifacts.elastic.co/downloads/elasticsearch/{{ es_download_filename }}.sha512"
+
+        # configuration
+        es_create_role_templates:
+          - { name: "read-only",  template: "{{ playbook_dir }}/templates/es/roles/read-only-role.json.j2" }
+          - { name: "read-write", template: "{{ playbook_dir }}/templates/es/roles/read-write-role.json.j2" }
+        es_create_user_templates:
+          - { user: "user_ro",  password: "top-secret", full_name: "Tomas Schmidt", email: "qwertqt@mail.de", "roles": "[\"read-only\"]" }
+          - { user: "user_rw",  password: "top-secret", full_name: "Tomas Schmidt", email: "qwertqt@mail.de", "roles": "[\"read-write\"]" }
+
+        es_templates:
+          # template broken: TODO: fix this
+          #  - { src: "{{ playbook_dir }}/templates/es/log4j2.properties.j2",                         mode: "755", dest: "log4j2.properties" }
+          - { src: "{{ playbook_dir }}/templates/es/jvm.options.j2",                               mode: "755", dest: "config/jvm.options" }
+          - { src: "{{ playbook_dir }}/templates/es/config/elasticsearch.yml.j2",                  mode: "755", dest: "config/elasticsearch.yml" }
+          - { src: "{{ playbook_dir }}/templates/es/jvm.options.d/elasticsearch.jvm.options.j2",   mode: "755", dest: "jvm.options.d/elasticsearch.jvm.options" }
+
+        es_admin_username: "admin"
+        es_admin_password: "top-secret"
+
+        es_heap_xms: "4g"
+
+        es_cluster_name: "es-cluster"
+        es_cluster_initial_master_nodes: "es-node-1"
+        es_node_name: es-node-1
+        es_bootstrap_memory_lock: true
+        es_discovery_seed_hosts: ["127.0.0.1", "[::1]"]
+        es_network_host: "127.0.0.1"
+
+      tags: [es]
+      when: ('es' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+  # post roles checks
+  tasks:
+  # TODO: add role tests

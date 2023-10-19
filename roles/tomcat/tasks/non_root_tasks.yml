@@ -1,0 +1,70 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+- name: create tomcat base dir
+  become_user: "{{ tomcat_user }}"
+  file:
+    path:   "{{ tomcat_base_dir }}"
+    owner:  "{{ tomcat_user }}"
+    group:  "{{ tomcat_group }}"
+    state:  "directory"
+    mode:   "0755"
+  notify:
+    - restart tomcat
+
+- name: deploy tomcat
+  become_user: "{{ tomcat_user }}"
+  unarchive:
+    src:    "{{ local_downloaded_tomcat_archive }}"
+    dest:   "{{ tomcat_base_dir }}"
+    owner:  "{{ tomcat_user }}"
+    group:  "{{ tomcat_group }}"
+    mode:   "0755"
+    exclude: |
+      {{
+        tomcat_templates | default([]) | map(attribute='dest') | 
+        union([
+          "logs/**", 
+          "temp/**", 
+          "work/**", 
+          "webapps/docs", 
+          "webapps/examples", 
+          "webapps/host-manager", 
+          "webapps/ROOT"
+        ])
+      }}
+  when: not ansible_check_mode
+  notify:
+    - restart tomcat
+
+- name: Make sure destination dirs for configs exists
+  become_user: "{{ tomcat_user }}"
+  file:
+    path: "{{ tomcat_base_dir }}/{{ tomcat_dirname }}/{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ tomcat_templates | default([]) }}"
+  notify:
+    - restart tomcat
+
+- name: deploy config templates
+  become_user: "{{ tomcat_user }}"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ tomcat_base_dir }}/{{ tomcat_dirname }}/{{ item.dest }}"
+    owner:  "{{ tomcat_user }}"
+    group:  "{{ tomcat_group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ tomcat_templates | default([]) }}"
+  notify:
+    - restart tomcat
+
+- name: set tomcat to current
+  become_user: "{{ tomcat_user }}"
+  file:
+    src:    "{{ tomcat_base_dir }}/{{ tomcat_dirname }}"
+    dest:   "{{ tomcat_base_dir }}/current"
+    state:  "link"
+  notify:
+    - restart tomcat

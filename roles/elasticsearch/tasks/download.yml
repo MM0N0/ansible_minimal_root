@@ -1,0 +1,17 @@
+---
+
+- name: local - create download directory
+  delegate_to: localhost
+  changed_when: "False"
+  file:
+    path:   "{{ local_downloaded }}"
+    state:  "directory"
+
+- name: local - download elasticsearch
+  delegate_to: localhost
+  changed_when: "False"
+  get_url:
+    url:      "{{ es_download_url }}"
+    checksum: "{{ es_download_checksum }}"
+    dest:     "{{ local_downloaded_es_archive }}"
+    mode:     "0755"

@@ -1,0 +1,56 @@
+---
+- import_tasks: download.yml
+  vars:
+    ansible_become: false
+
+- name: check that the pid_file exists
+  become_user: "postgres"
+  stat:
+    path: /var/run/postgresql/14-main.pid
+  register: pid_file
+
+- name: start PostgreSQL service if there is no pid_file
+  become_user: "postgres"
+  shell: "sudo service postgresql start"
+  when: not pid_file.stat.exists
+
+- name: create db user "{{ pg_database_user }}", set password and grant privileges
+  become_user: "postgres"
+  postgresql_user:
+    name: "{{ pg_database_user }}"
+    password: "{{ pg_database_password }}"
+    role_attr_flags: CREATEDB,NOSUPERUSER
+
+- name: Make sure destination dirs for configs exists
+  become_user: "postgres"
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ pg_templates | default([]) }}"
+
+- name: deploy config templates
+  become_user: "postgres"
+  template:
+    src:    "{{ item.src }}"
+    dest:   "{{ item.dest }}"
+    owner:  "postgres"
+    group:  "{{ pg_group }}"
+    mode:   "{{ item.mode }}"
+  with_items: "{{ pg_templates | default([]) }}"
+  notify:
+    - restart postgresql
+
+- name: Create the database specified in vars
+  become_user: "postgres"
+  postgresql_db: "name={{ item }}
+    template='template0'
+    state=present"
+  with_items: "{{ pg_databases | default([]) }}"
+
+- name: create schemas
+  become_user: "postgres"
+  postgresql_schema:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner }}"
+    database: "{{ item.database }}"
+  with_items: "{{ pg_schemas | default([]) }}"

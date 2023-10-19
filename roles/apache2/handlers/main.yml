@@ -1,0 +1,4 @@
+---
+- name: restart apache2
+  become_user: "{{ apache2_user }}"
+  shell: "sudo service apache2 start"
