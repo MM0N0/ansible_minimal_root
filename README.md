@@ -23,7 +23,7 @@ to make it usable on restrictive systems.
   - [tomcat](roles/tomcat/README.md)
 
 ## Requirements
-- docker
+- docker and docker-compose
 - bash
 
 note: if you are using windows, you will have to use wsl
