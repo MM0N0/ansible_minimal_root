@@ -1,15 +1,16 @@
 ---
 - name: set facts
   set_fact:
-    local_downloaded:                 "{{ role_path }}/files/.download"
+    local_downloaded: "{{ role_path }}/files/.download"
     local_downloaded_tomcat_dir:      "{{ role_path }}/files/.download/{{ tomcat_dirname }}"
     local_downloaded_tomcat_archive:  "{{ role_path }}/files/.download/{{ tomcat_download_filename }}"
+    no_tags_set:      ( (ansible_run_tags|default([])) | length == 0 )
   tags: [always]
 
 - import_tasks: root_tasks.yml
   tags: [root_tasks]
-  when: "'root_tasks' in ansible_run_tags"
+  when: "'root_tasks' in ansible_run_tags or no_tags_set"
 
 - import_tasks: non_root_tasks.yml
   tags: [non_root_tasks]
-  when: "'non_root_tasks' in ansible_run_tags"
+  when: "'non_root_tasks' in ansible_run_tags or no_tags_set"

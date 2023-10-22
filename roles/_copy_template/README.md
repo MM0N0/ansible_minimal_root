@@ -31,4 +31,4 @@ Example Playbook
           vars:
               a: "a"
           tags: [<ROLE>]
-          when: ('<ROLE>' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+          when: ('<ROLE>' in ansible_run_tags) or ('all_roles' in ansible_run_tags) or ( (ansible_run_tags|default([])) | length == 0 )

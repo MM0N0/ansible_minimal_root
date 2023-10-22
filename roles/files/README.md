@@ -56,4 +56,4 @@ Example Playbook
                     owner: "user", group: "user", mode: "755", 
                     dest: "{{ base_dir }}/aaa/template_test_file" }
           tags: [files]
-          when: ('files' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+          when: ('files' in ansible_run_tags) or ('all_roles' in ansible_run_tags) or ( (ansible_run_tags|default([])) | length == 0 )

@@ -79,4 +79,4 @@ Example Playbook
             es_network_host:          "127.0.0.1"
     
           tags: [es]
-          when: ('es' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+          when: ('es' in ansible_run_tags) or ('all_roles' in ansible_run_tags) or ( (ansible_run_tags|default([])) | length == 0 )
