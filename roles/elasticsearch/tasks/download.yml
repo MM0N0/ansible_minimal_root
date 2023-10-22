@@ -15,7 +15,5 @@
     checksum: "{{ es_download_checksum }}"
     dest:     "{{ local_downloaded_es_archive }}"
     mode:     "0755"
-  register: get_url_result
-  until: "'OK' in get_url_result.msg"
   retries: 5
   delay: 10
