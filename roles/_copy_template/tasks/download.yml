@@ -16,5 +16,9 @@
     mode:     "{{ item.mode }}"
     username: "{{ item.username }}"
     password: "{{ item.password }}"
+  register: get_url_result
+  until: "'OK' in get_url_result.msg"
+  retries: 5
+  delay: 10
   with_items: "{{ download_files | default([]) }}"
   no_log: true
