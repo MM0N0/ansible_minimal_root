@@ -40,7 +40,7 @@ NON_ROOT_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/inventory.yml' '$SCRIPT_DIR
 "$PROJECT_DIR/.docker/ansible_docker.sh" "$NON_ROOT_TASKS_CMD"
 
 echo "do test-tasks"
-TEST_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/inventory.yml' -e 'ansible_user=root ansible_password=root' '$TEST_DIR/test.yml' $2"
+TEST_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/inventory.yml' -e 'ansible_user=root ansible_password=root' '$SCRIPT_DIR/test.yml' $2"
 "$PROJECT_DIR/.docker/ansible_docker.sh" "$TEST_TASKS_CMD"
 
 
