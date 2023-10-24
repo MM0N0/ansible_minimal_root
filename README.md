@@ -1,5 +1,5 @@
 # Ansible Collection - minimal_root
-[![test master](https://github.com/MM0N0/ansible_minimal_root/actions/workflows/test_master.yml/badge.svg)](https://github.com/MM0N0/ansible_minimal_root/actions/workflows/test_master.yml)
+[![test master](https://github.com/MM0N0/ansible_minimal_root/actions/workflows/test_main.yml/badge.svg)](https://github.com/MM0N0/ansible_minimal_root/actions/workflows/test_main.yml)
 
 This is a [collection](https://docs.ansible.com/ansible/devel/collections_guide/index.html)
 of [Ansible](https://www.ansible.com) [roles](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html)
