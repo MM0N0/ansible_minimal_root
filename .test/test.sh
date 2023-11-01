@@ -12,7 +12,7 @@ find "$PROJECT_DIR/roles" -mindepth 1 -maxdepth 1 -type d -print0 |
     while IFS= read -r -d '' line; do
         role=$(echo "$line" | sed -E 's$.*/([^/]+)$\1$')
         printf "\n[run tests of role: '%s']\n\n" "$role"
-        "$SCRIPT_DIR/test_role.sh" "$role" "$1"
+        NO_TTY=1 bash "$SCRIPT_DIR/test_role.sh" "$role" "$1"
     done
 
 printf "\n[[run combination tests]]\n"
