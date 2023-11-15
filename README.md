@@ -35,6 +35,12 @@ test setup by running:
 .test/test_role.sh files
 ```
 
+build docker images yourself:
+
+```bash 
+.docker/build.sh
+```
+
 ## Documentation
 
 ### Usage in an ansible project
@@ -49,7 +55,7 @@ collections:
     type: git
 ```
 
-#### 2. install this collection as a requirement
+#### 2. install this collection as a requirement in another ansible project
 run:
 
 ```bash
@@ -66,19 +72,20 @@ ansible-galaxy collection install -r requirements.yml --force
 #### 3. use the roles in a playbook
 ```yml
 - name: Install/Configure ElasticSearch
-  hosts: ...
+  hosts: foo
   roles:
     - role: common.minimal_root.elasticsearch
-      vars:
-        ...
+      vars: 
+        foo: bar
+#[...]
 ```
 
 # TODOs
 
 - update README
-  - install collection inside dev_docker [*]
+  - install collection inside dev_docker
 
-  - add good usage example [here](#3-use-the-roles-in-a-playbook)
+  - add good usage example [here](#3-use-the-roles-in-a-playbook) [*]
   - [write a role](docs/how_to/write_a_role.md)
 - improve tests
 - update role tomcat
