@@ -75,11 +75,12 @@ ansible-galaxy collection install -r requirements.yml --force
 
 # TODOs
 
-- improve tests
-
 - update README
+  - install collection inside dev_docker [*]
+
   - add good usage example [here](#3-use-the-roles-in-a-playbook)
   - [write a role](docs/how_to/write_a_role.md)
+- improve tests
 - update role tomcat
   - maybe download tar from artifactory
 - update role postgresql
