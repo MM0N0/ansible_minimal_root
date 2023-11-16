@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   server:
-    image: mm0n0/ubuntu_ansible_test_host:v1
+    image: mm0n0/test_host_ansible_minimal_root_example:v1
     container_name: test_host_ansible_minimal_root
     expose:
       - "22"
