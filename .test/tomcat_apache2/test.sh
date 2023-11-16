@@ -2,22 +2,31 @@
 SCRIPT_DIR=${0%/*}
 PROJECT_DIR=$SCRIPT_DIR/../../
 
-if [ -n "$ANSIBLE_TEST_STOP_CONTAINER" ]; then
+
+printf "\n[run test 'tomcat_apache']\n\n"
+
+
+# to make script abort, when any command fails
+set -e
+set -o pipefail
+
+if [ "$ANSIBLE_RUN_ONLY_TEST_TASKS" == 1 ]; then
+  echo "do test-tasks"
+  TEST_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/root_inventory.yml' '$SCRIPT_DIR/test.yml' $2"
+  "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
+  exit 0
+fi
+
+if [ -z "$ANSIBLE_TEST_STOP_CONTAINER" ]; then
   ANSIBLE_TEST_STOP_CONTAINER=1
 fi
 if [ -z "$ANSIBLE_TEST_REMOVE_ROOT" ]; then
   ANSIBLE_TEST_REMOVE_ROOT=1
 fi
 
-printf "\n[run test 'tomcat_apache']\n\n"
-
 if [ "$ANSIBLE_TEST_STOP_CONTAINER" == 1 ]; then
   docker compose -f "$SCRIPT_DIR/docker-compose.yml" down > /dev/null 2>&1 || echo "no running container"
 fi
-
-# to make script abort, when any command fails
-set -e
-set -o pipefail
 
 docker compose -f "$SCRIPT_DIR/docker-compose.yml" up -d
 
@@ -40,7 +49,7 @@ NON_ROOT_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/inventory.yml' '$SCRIPT_DIR
 "$PROJECT_DIR/.docker/dev_docker.sh" "$NON_ROOT_TASKS_CMD"
 
 echo "do test-tasks"
-TEST_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/inventory.yml' -e 'ansible_user=root ansible_password=root' '$SCRIPT_DIR/test.yml' $2"
+TEST_TASKS_CMD="ansible-playbook -i '$SCRIPT_DIR/root_inventory.yml' '$SCRIPT_DIR/test.yml' $2"
 "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
 
 
