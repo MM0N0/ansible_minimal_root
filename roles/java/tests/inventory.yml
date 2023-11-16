@@ -7,3 +7,4 @@ all:
 
       ansible_user: user
       ansible_password: user
+      ansible_ssh_extra_args: '-o ControlMaster=no -o ControlPersist=60s -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null'
