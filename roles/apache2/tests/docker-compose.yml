@@ -4,7 +4,7 @@ services:
 
   server:
     image: mm0n0/ubuntu_ansible_test_host:v1
-    container_name: test_host
+    container_name: test_host_ansible_minimal_root
     expose:
       - "22"
       - "5432"
