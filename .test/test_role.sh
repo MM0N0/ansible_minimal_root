@@ -11,7 +11,7 @@ set -o pipefail
 
 if [ "$ANSIBLE_RUN_ONLY_TEST_TASKS" == 1 ]; then
   echo "do test-tasks"
-  TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' -e 'ansible_user=root ansible_password=root' '$TEST_DIR/test.yml' $2"
+  TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
   "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
   exit 0
 fi
@@ -48,7 +48,7 @@ NON_ROOT_TASKS_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' '$TEST_DIR/tes
 "$PROJECT_DIR/.docker/dev_docker.sh" "$NON_ROOT_TASKS_CMD"
 
 echo "do test-tasks"
-TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' -e 'ansible_user=root ansible_password=root' '$TEST_DIR/test.yml' $2"
+TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
 "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
 
 
