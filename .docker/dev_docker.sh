@@ -11,5 +11,4 @@ docker run --rm$INTERACTIVE_ARG --net="host" --name=dev_docker_ansible_minimal_r
   -v "${PWD}":/repo:rw \
   "mm0n0/dev_docker_ansible_minimal_root:v1" \
   \
-  bash -c \
-    "cd /repo && $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18}"
+  bash -c "cd /repo && $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18}"
