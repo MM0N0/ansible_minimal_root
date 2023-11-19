@@ -48,10 +48,9 @@ build docker images yourself:
 example project: https://github.com/MM0N0/ansible_minimal_root_example
 
 # TODOs
-  
-- update README
-  - add good usage example [here](#3-use-the-roles-in-a-playbook) [*]
-  - [write a role](docs/how_to/write_a_role.md)
+
+- update README]
+  - [write a role](docs/how_to/write_a_role.md) [*]
 - improve tests
 - update role tomcat
   - maybe download tar from artifactory
