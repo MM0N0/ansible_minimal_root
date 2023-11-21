@@ -1,8 +1,1 @@
 ---
-- name: restart some_app
-  become_user: "some_user"
-  shell: "sudo service some_app start"
-
-# add to tasks to trigger handler on change
-#   notify:
-#     - restart some_app
