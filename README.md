@@ -49,8 +49,11 @@ example project: https://github.com/MM0N0/ansible_minimal_root_example
 
 # TODOs
 
+- add some generic roles for project management:
+  - run_cmd (run cmd) [feature/run_cmd]
+  - app_ctrl (manage application and perform "start", "stop" and "status")
 - update README]
-  - [write a role](docs/how_to/write_a_role.md) [*]
+  - [write a role](docs/how_to/write_a_role.md)
 - improve tests
 - update role tomcat
   - maybe download tar from artifactory
