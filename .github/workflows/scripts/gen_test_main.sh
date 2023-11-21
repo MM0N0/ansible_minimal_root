@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=${0%/*}
 PROJECT_DIR=$SCRIPT_DIR/../../../
-GENERATED_WORKFLOW="$SCRIPT_DIR/../test_main.yml"
+GENERATED_WORKFLOW="$SCRIPT_DIR/../test.yml"
 
 function printJobForRole {
   export JOBNAME=$1
@@ -62,6 +62,6 @@ if [ "$CHECKSUM_PRE_RUN" != "$CHECKSUM_POST_RUN" ]
 then
   echo "checksums changed."
   echo "returning status code 1 to make post-commit-hook interrupt commits"
-  printf "\n\n%s\n" "the github workflow 'test_main.yml' has been updated. review and add to the commit"
+  printf "\n\n%s\n" "the github workflow 'test.yml' has been updated. review and add to the commit"
   exit 1
 fi
