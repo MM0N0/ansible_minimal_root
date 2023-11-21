@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+
+  server:
+    image: mm0n0/test_host_ansible_minimal_root_example:v1
+    container_name: test_host
+    expose:
+      - "22"
+      - "8080"
+    ports:
+      - "2022:22"
+      - "8080:8080"
