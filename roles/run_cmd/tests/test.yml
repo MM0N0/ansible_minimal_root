@@ -16,15 +16,16 @@
 
     - role: run_cmd
       vars:
-        a: "a"
+        local: true
+        cmd: "pwd"
       tags: [run_cmd]
       when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
-    - role: run_cmd
-      vars:
-        a: "a"
-      tags: [run_cmd]
-      when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+#    - role: run_cmd
+#      vars:
+#        a: "a"
+#      tags: [run_cmd]
+#      when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
   # post roles checks
   tasks:
