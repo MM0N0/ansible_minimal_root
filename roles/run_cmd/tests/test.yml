@@ -10,7 +10,6 @@
   roles:
     - role: run_cmd
       vars:
-        local: true
         cmd: "pwd"
       tags: [run_cmd]
       when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)

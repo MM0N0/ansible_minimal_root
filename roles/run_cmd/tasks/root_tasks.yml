@@ -27,8 +27,6 @@
 - debug:
     msg: "stdout_lines: {{item.stdout_lines}}"
   loop: "{{ cmds_register.results | default([]) }}"
-  loop_control:
-    label: "cmd:{{ item.cmd }} - rc:{{ item.rc }}"
   when:
     - log | default(true)
     - cmds_register is defined
