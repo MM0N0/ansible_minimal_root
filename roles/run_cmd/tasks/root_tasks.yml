@@ -1,1 +1,36 @@
 ---
+
+- name: run command
+  become_user: "{{ user | default(ansible_user) }}"
+  #  changed_when: False
+  # TODO: add changed_when parameter
+  shell: "{{ cmd }}"
+  register: cmd_register
+  delegate_to: "{{ 'localhost' if local|default(false) else inventory_hostname }}"
+  when: cmd is defined
+
+- debug:
+    msg: "stdout_lines: {{cmd_register.stdout_lines}}"
+  when:
+    - log | default(true)
+    - cmd is defined
+
+- name: run commands
+  become_user: "{{ user | default(ansible_user) }}"
+  #  changed_when: False
+  # TODO: add changed_when parameter
+  shell: "{{ item }}"
+  loop: "{{ cmds | default([]) }}"
+  register: cmds_register
+  delegate_to: "{{ 'localhost' if local|default(false) else inventory_hostname }}"
+
+- debug:
+    msg: "stdout_lines: {{item.stdout_lines}}"
+  loop: "{{ cmds_register.results | default([]) }}"
+  loop_control:
+    label: "cmd:{{ item.cmd }} - rc:{{ item.rc }}"
+  when:
+    - log | default(true)
+    - cmds_register is defined
+
+# ANSIBLE_RUN_ONLY_TEST_TASKS=1 ANSIBLE_TEST_STOP_CONTAINER=0 ANSIBLE_TEST_REMOVE_ROOT=0 .test/test_role.sh run_cmd "--tags run_cmd"
