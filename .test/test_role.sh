@@ -11,7 +11,7 @@ set -o pipefail
 
 if [ "$ANSIBLE_RUN_ONLY_TEST_TASKS" == 1 ]; then
   echo "do test-tasks"
-  TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
+  TEST_TASKS_CMD="ALLOW_WORLD_READABLE_TMPFILES=1 ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
   "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
   exit 0
 fi
@@ -32,23 +32,23 @@ docker compose -f "$TEST_DIR/docker-compose.yml" up -d
 
 
 echo "do root-tasks"
-ROOT_TASKS_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' '$TEST_DIR/test.yml' --tags all_roles,root_tasks $2"
+ROOT_TASKS_CMD="ALLOW_WORLD_READABLE_TMPFILES=1 ansible-playbook -i '$TEST_DIR/inventory.yml' '$TEST_DIR/test.yml' --tags all_roles,root_tasks $2"
 "$PROJECT_DIR/.docker/dev_docker.sh" "$ROOT_TASKS_CMD"
 
 if [ "$ANSIBLE_TEST_REMOVE_ROOT" == 1 ]; then
   echo "remove root"
-  REMOVE_ROOT_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' '$SCRIPT_DIR/remove_sudo_permissions.yml' -e 'set_hosts=all,!localhost' $2"
+  REMOVE_ROOT_CMD="ALLOW_WORLD_READABLE_TMPFILES=1 ansible-playbook -i '$TEST_DIR/inventory.yml' '$SCRIPT_DIR/remove_sudo_permissions.yml' -e 'set_hosts=all,!localhost' $2"
   "$PROJECT_DIR/.docker/dev_docker.sh" "$REMOVE_ROOT_CMD"
 else
   echo "skipped remove root"
 fi
 
 echo "do non-root-tasks"
-NON_ROOT_TASKS_CMD="ansible-playbook -i '$TEST_DIR/inventory.yml' '$TEST_DIR/test.yml' --tags all_roles,non_root_tasks $2"
+NON_ROOT_TASKS_CMD="ALLOW_WORLD_READABLE_TMPFILES=1 ansible-playbook -i '$TEST_DIR/inventory.yml' '$TEST_DIR/test.yml' --tags all_roles,non_root_tasks $2"
 "$PROJECT_DIR/.docker/dev_docker.sh" "$NON_ROOT_TASKS_CMD"
 
 echo "do test-tasks"
-TEST_TASKS_CMD="ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
+TEST_TASKS_CMD="ALLOW_WORLD_READABLE_TMPFILES=1 ansible-playbook -i '$TEST_DIR/root_inventory.yml' '$TEST_DIR/test.yml' $2"
 "$PROJECT_DIR/.docker/dev_docker.sh" "$TEST_TASKS_CMD"
 
 
