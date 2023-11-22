@@ -1,6 +1,7 @@
 ---
 
 - name: run command
+  become: "{{ user is defined }}"
   become_user: "{{ user | default(ansible_user) }}"
   #  changed_when: False
   # TODO: add changed_when parameter
@@ -16,6 +17,7 @@
     - cmd is defined
 
 - name: run commands
+  become: "{{ user is defined }}"
   become_user: "{{ user | default(ansible_user) }}"
   #  changed_when: False
   # TODO: add changed_when parameter
