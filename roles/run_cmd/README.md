@@ -9,12 +9,13 @@ no requirements
 Role Variables
 --------------
 
-| Variable | Required | Default     | Choices | Comments                                               |
-|----------|----------|-------------|---------|--------------------------------------------------------|
-| local    | no       | false       |         | run commands local, if true. on remote host, if false. |
-| cmd      | no       | not defined |         | run single command                                     |
-| cmds     | no       | not defined |         | run multiple commands (pass as a list of strings)      |
-| log      | no       | true        |         | log output of the command                              |
+| Variable | Required | Default                                                             | Choices | Comments                                                             |
+|----------|----------|---------------------------------------------------------------------|---------|----------------------------------------------------------------------|
+| local    | no       | false                                                               |         | run commands local, if true. on remote host, if false.               |
+| user     | no       | local user, if run locally. ansible_user, if you run on remote host |         | run commands as this user (make sure you have permission to do this) |
+| cmd      | no       | not defined                                                         |         | run single command                                                   |
+| cmds     | no       | not defined                                                         |         | run multiple commands (pass as a list of strings)                    |
+| log      | no       | true                                                                |         | log output of the command                                            |
 cmd and cmds can be used both. the role will run all of them. 
 
 Example Playbook 
