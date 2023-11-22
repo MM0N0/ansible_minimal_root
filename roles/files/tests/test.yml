@@ -30,7 +30,7 @@
           - { path: "/tmp/user_file", owner: "user", group: "user", mode: "755", line: "# TEST" }
 
       tags: [files]
-      when: ('files' in ansible_run_tags) or ('all_roles' in ansible_run_tags) or ( (ansible_run_tags|default([])) | length == 0 )
+      when: ('files' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
   # post roles checks
   tasks:

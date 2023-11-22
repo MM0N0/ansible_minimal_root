@@ -24,7 +24,7 @@
         java_download_checksum: "sha256:5f19fb28aea3e28fcc402b73ce72f62b602992d48769502effe81c52ca39a581"
 
       tags: [java]
-      when: ('java' in ansible_run_tags) or ('all_roles' in ansible_run_tags) or ( (ansible_run_tags|default([])) | length == 0 )
+      when: ('java' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
     - role: tomcat
       vars:
