@@ -8,6 +8,8 @@
     base_dir:     "/applications"
     devops_group: "devops"
   roles:
+
+
     - role: run_cmd
       cmds:
         - "echo 'HELLO WORLD'"
@@ -45,6 +47,7 @@
 
       tags: [run_cmd]
       when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
 
   # post roles checks
   tasks:
