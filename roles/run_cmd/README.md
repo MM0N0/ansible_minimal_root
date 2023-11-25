@@ -29,15 +29,41 @@ Example Playbook
       become_method: sudo
       roles:
 
+
+        - role: run_cmd
+          cmds:
+            - "echo 'HELLO WORLD'"
+            - "pwd"
+    
+          tags: [run_cmd]
+          when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+    
+    
         - role: run_cmd
           user: user
           cmd: whoami
+    
           tags: [run_cmd]
           when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+    
+    
+        - role: run_cmd
+          user: user
+          cmd: whoami
+          cmds:
+            - "echo 'HELLO WORLD'"
+            - "pwd"
+          changed_when: false
+    
+          tags: [run_cmd]
+          when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+    
     
         - role: run_cmd
           local: true
           cmd: "pwd"
+          log: false
           changed_when: false
+    
           tags: [run_cmd]
           when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
