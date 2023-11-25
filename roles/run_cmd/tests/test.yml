@@ -22,11 +22,17 @@
       when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
     - role: run_cmd
-      local: true
-      cmd: "pwd"
+      user: user
+      cmd: whoami
       cmds:
         - "echo 'HELLO WORLD'"
         - "pwd"
+      tags: [run_cmd]
+      when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: run_cmd
+      local: true
+      cmd: "pwd"
       log: false
       changed_when: false
       tags: [run_cmd]
