@@ -1,4 +1,6 @@
 galaxy_info:
+  allow_duplicates: true
+
   author: your name
   description: your role description
   company: your company (optional)
