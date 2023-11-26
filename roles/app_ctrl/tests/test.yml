@@ -48,11 +48,24 @@
         when: ('tomcat' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
     - role: app_ctrl
-      a: "a"
+      user: tomcat_usr
+      cmd: "sudo systemctl stop tomcat.service"
+      process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+      wait_until: no_pid
 
       tags: [app_ctrl]
       when: ('app_ctrl' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
+    - role: app_ctrl
+      user: tomcat_usr
+      cmd: "sudo systemctl start tomcat.service"
+      process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+      wait_until: pid
+      process_user: tomcat_usr
+
+      tags: [app_ctrl]
+      when: ('app_ctrl' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+
   # post roles checks
-  tasks:
-    []
+  tasks: []
