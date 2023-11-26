@@ -16,6 +16,10 @@ to make it usable on restrictive systems.
 - generic roles:
   - [minimal_root_setup](roles/minimal_root_setup/README.md)
   - [files](roles/files/README.md)
+  - use for "run once" playbooks 
+    
+    (for example activate/deactivate maintenance mode)
+      - [run_cmd](roles/run_cmd/README.md)
 - application roles:
   - [apache2](roles/apache2/README.md)
   - [elasticsearch](roles/elasticsearch/README.md)
