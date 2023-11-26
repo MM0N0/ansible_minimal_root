@@ -20,6 +20,7 @@ to make it usable on restrictive systems.
     
     (for example activate/deactivate maintenance mode)
       - [run_cmd](roles/run_cmd/README.md)
+      - [app_ctrl](roles/app_ctrl/README.md) (start status stop)
 - application roles:
   - [apache2](roles/apache2/README.md)
   - [elasticsearch](roles/elasticsearch/README.md)
