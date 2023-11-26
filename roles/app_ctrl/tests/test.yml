@@ -62,6 +62,7 @@
       process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
       wait_until: pid
       process_user: tomcat_usr
+      log: true
 
       tags: [app_ctrl]
       when: ('app_ctrl' in ansible_run_tags) or ('all_roles' in ansible_run_tags)

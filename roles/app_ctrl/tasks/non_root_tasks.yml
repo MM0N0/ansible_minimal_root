@@ -3,28 +3,23 @@
   vars:
     ansible_become: false
 
-- name: test
-  debug:
-    msg: "test"
-
-#user: tomcat
-#cmd: "sudo systemctl stop tomcat"
-#process_regex: "/.*/java/current/bin/java.*/.*/tomcat/.*"
-#wait_until: no_pid
-
 # run app command
 - name: run app_ctrl cmd
   become: "{{ user is defined }}"
   become_user: "{{ user | default(None) }}"
-  changed_when: "changed_when|default(true)"
   shell: "{{ cmd }}"
+  register: app_ctrl_cmd
 
+- debug:
+    msg: "{{ app_ctrl_cmd }}"
+  when: log|default(false)
 
 # wait for pid or no_pid ( 2 min in total )
 - name: get pid
   changed_when: "false"
-  shell: 'GREP_PATTERN="^$CMD_USER[ ]+([0-9]+)[ ]+([0-9]+)[ ]+[0-9]+[ ]+[0-9A-Za-z:]+[ ]+[^ ]+[ ]+[0-9\:-]+[ ]+(.*)$"; 
-          ps -Af | grep -oP "$GREP_PATTERN"  | sed -r "s/$GREP_PATTERN/\1-\3/" | grep -E "^[0-9]+-$PROCESS_SEARCH_PATTERN" | sed -r "s/^([0-9]+)-.*$/\1/"'
+  become: "false"
+  shell: 'GREP_PATTERN="^$CMD_USER[ ]+([0-9]+)[ ]+(.*)$"; 
+          ps -e -o user:50,pid:20,cmd:50 | more | grep -oP "$GREP_PATTERN"  | sed -r "s/$GREP_PATTERN/\1-\2/" | grep -E "^[0-9]+-$PROCESS_SEARCH_PATTERN" | sed -r "s/^([0-9]+)-.*$/\1/"'
   environment:
     CMD_USER: "{{ process_user|default('.+') }}"
     PROCESS_SEARCH_PATTERN: "{{ process_regex }}"
@@ -34,6 +29,3 @@
   until:
     - ( get_pid_out.stdout=='' and wait_until|default('')=='no_pid' ) or ( get_pid_out.stdout!='' and wait_until|default('')=='pid' )
   when: wait_until|default('')=='no_pid' or wait_until|default('')=='pid'
-
-- debug:
-    msg: "{{get_pid_out}}"
