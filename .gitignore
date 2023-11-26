@@ -18,3 +18,4 @@ Thumbs.db
 
 # download dir in roles
 **/.download/**
+.tmp/**

@@ -10,15 +10,28 @@
   roles:
 
 
+    # create local file
     - role: run_cmd
-      cmds:
-        - "echo 'HELLO WORLD'"
-        - "pwd"
+      local: true
+      cmd: "mkdir -p /repo/.tmp; echo 'test' > /repo/.tmp/test_file_run_cmd"
+      log: false
+      changed_when: false
 
       tags: [run_cmd]
       when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
 
+    # create remote file
+    - role: run_cmd
+      cmds:
+        - "mkdir -p /tmp/.tmp"
+        - "echo 'test' > /tmp/.tmp/test_file_run_cmd"
+
+      tags: [run_cmd]
+      when: ('run_cmd' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+
+    # more usages
     - role: run_cmd
       user: user
       cmd: whoami
@@ -51,4 +64,37 @@
 
   # post roles checks
   tasks:
-    []
+
+    # check local file
+    - name: get stat of local file
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "/repo/.tmp/test_file_run_cmd"
+      register: file_stat
+    - debug:
+        msg: "{{file_stat}}"
+    - name: test - check properties of local file
+      assert:
+        that:
+          - file_stat.stat.exists
+          - file_stat.stat.checksum == '4e1243bd22c66e76c2ba9eddc1f91394e57f9f83'
+        fail_msg: "some property were not properly set"
+        success_msg: "all properties were properly set"
+    - name: removing local files
+      delegate_to: localhost
+      shell: "rm -Rf /repo/.tmp"
+
+    # check remote file
+    - name: get stat of remote file
+      ansible.builtin.stat:
+        path: "/tmp/.tmp/test_file_run_cmd"
+      register: file_stat
+    - debug:
+        msg: "{{file_stat}}"
+    - name: test - check properties of remote file
+      assert:
+        that:
+          - file_stat.stat.exists
+          - file_stat.stat.checksum == '4e1243bd22c66e76c2ba9eddc1f91394e57f9f83'
+        fail_msg: "some property were not properly set"
+        success_msg: "all properties were properly set"
