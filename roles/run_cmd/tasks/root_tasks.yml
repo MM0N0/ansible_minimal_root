@@ -1,0 +1,26 @@
+---
+- name: run command
+  become: "{{ user is defined }}"
+  become_user: "{{ user | default(None) }}"
+  changed_when: changed_when|default(true)
+  shell: "{{ cmd }}"
+  register: cmd_register
+  delegate_to: "{{ 'localhost' if local|default(false) else inventory_hostname }}"
+  when: cmd is defined
+
+- name: run commands
+  become: "{{ user is defined }}"
+  become_user: "{{ user | default(None) }}"
+  changed_when: changed_when|default(true)
+  shell: "{{ item }}"
+  loop: "{{ cmds | default([]) }}"
+  register: cmds_register
+  delegate_to: "{{ 'localhost' if local|default(false) else inventory_hostname }}"
+
+- debug:
+    msg: "stdout_lines: {{cmd_register.stdout_lines}}"
+  when: (log is not defined or log) and cmd is defined
+- debug:
+    msg: "stdout_lines: {{item.stdout_lines}}"
+  loop: "{{ cmds_register.results | default([]) }}"
+  when: (log is not defined or log) and cmds is defined
