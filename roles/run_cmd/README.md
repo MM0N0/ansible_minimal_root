@@ -1,6 +1,37 @@
 run_cmd
 =========
-This role ....
+With this role you can run commands locally or remotely.
+
+This role should only be used for small playbooks to trigger a certain change in the architecture. 
+It is not meant to be used in declarative master playbooks.  
+
+**make sure you use the syntax from the example playbook**
+
+**don't** set vars like this:
+
+        - role: run_cmd
+          vars:
+            cmds:
+            - "echo 'HELLO WORLD'"
+            - "pwd"
+
+
+        - role: run_cmd
+          vars:
+            cmds: []
+    
+vars are set globally, so the last declaration in the playbook is valid. In this case no commands will be executed, because cmds is set to [] in the last declaration.
+
+**If you set vars like this, it will work as expected:**
+
+        - role: run_cmd
+          cmds:
+            - "echo 'HELLO WORLD'"
+            - "pwd"
+
+
+        - role: run_cmd
+          cmds: []
 
 Requirements
 ------------
