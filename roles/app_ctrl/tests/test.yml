@@ -69,4 +69,39 @@
 
 
   # post roles checks
-  tasks: []
+  tasks:
+
+    # check log for "Server startup in [0-9]+ (milliseconds|ms)"
+    - name: test - run cmd to check catalina log for "Server startup"
+      become_user: "{{ tomcat_user }}"
+      changed_when: False
+      shell: "grep -E  --only-matching 'Server startup in [0-9]+ (milliseconds|ms)' {{ base_dir }}/tomcat/current/logs/catalina.out"
+      register: has_started
+    - debug:
+        msg: "found: {{has_started.stdout_lines}}"
+    - name: test - check catalina log for "Server startup" - output
+      assert:
+        that:
+          - has_started.rc == 0
+        fail_msg: "'has_started' return code must be 0"
+        success_msg: '"Server startup in [0-9]+ (milliseconds|ms)" was found in catalina.out'
+
+    # check process
+    - name: "test - run cmd to get pid"
+      become_user: "{{ tomcat_user }}"
+      changed_when: False
+      shell: 'GREP_PATTERN="^$CMD_USER[ ]+([0-9]+)[ ]+(.*)$"; 
+            ps ax o user:99,pid,cmd | more | grep -oP "$GREP_PATTERN" | sed -r "s/$GREP_PATTERN/\1-\2/" | grep -E "^[0-9]+-$PROCESS_SEARCH_PATTERN" | sed -r "s/^([0-9]+)-.*$/\1/"'
+      environment:
+        CMD_USER: "{{ tomcat_user }}"
+        PROCESS_SEARCH_PATTERN: "{{ base_dir }}/java/current//bin/java .* org.apache.catalina.startup.Bootstrap start"
+      register: process_running
+    - debug:
+        msg: "pid: {{ process_running.stdout }}, is_number: {{ process_running.stdout is match '[0-9]+' }}"
+    - name: "test - check if process is running - output"
+      assert:
+        that:
+          - process_running.rc == 0
+          - process_running.stdout is match '[0-9]+'
+        fail_msg: "process was not found"
+        success_msg: 'process is running'
