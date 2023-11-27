@@ -9,30 +9,23 @@ It is not meant to be used in declarative master playbooks.
 
 **don't** set vars like this:
 
-        - role: run_cmd
-
+        - role: app_ctrl
           vars:
-            cmds:
-            - "echo 'HELLO WORLD'"
-            - "pwd"
-
-
-        - role: run_cmd
-          vars:
-            cmds: []
+            user: tomcat_usr
+            cmd: "sudo systemctl stop tomcat.service"
+            process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+            wait_until: no_pid
 
 vars are set globally, so the last declaration in the playbook is valid. In this case no commands will be executed, because cmds is set to [] in the last declaration.
 
 **If you set vars like this, it will work as expected:**
 
-        - role: run_cmd
-          cmds:
-            - "echo 'HELLO WORLD'"
-            - "pwd"
+        - role: app_ctrl
+          user: tomcat_usr
+          cmd: "sudo systemctl stop tomcat.service"
+          process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+          wait_until: no_pid
 
-
-        - role: run_cmd
-          cmds: []
 
 
 Requirements
