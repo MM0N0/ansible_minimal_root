@@ -1,0 +1,107 @@
+---
+- name: site
+  gather_facts: no
+  hosts: test_host
+  become: yes
+  become_method: sudo
+  vars:
+    base_dir:     "/applications"
+    devops_group: "devops"
+  roles:
+    - name: minimal_root_setup
+      vars:
+        devops_user: "{{ ansible_user }}"
+      tags: [minimal_root_setup]
+      when: ('minimal_root_setup' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: java
+      vars:
+        java_base_dir:  "{{ base_dir }}/java"
+        java_user:      "java_user"
+        java_group:     "java_group"
+
+        java_dirname:           "OpenJDK11U-jdk_x64_linux_hotspot_11.0.19_7"
+        java_download_filename: "{{ java_dirname }}.tar.gz"
+        java_download_url:      "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.19%2B7/{{ java_download_filename }}"
+        java_download_checksum: "sha256:5f19fb28aea3e28fcc402b73ce72f62b602992d48769502effe81c52ca39a581"
+
+      tags: [java]
+      when: ('java' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: tomcat
+      vars:
+        tomcat_user:      "tomcat_usr"
+        tomcat_group:     "tomcat_grp"
+        tomcat_base_dir:  "{{ base_dir }}/tomcat"
+
+        tomcat_dirname:           "apache-tomcat-8.5.95"
+        tomcat_download_filename: "{{ tomcat_dirname }}.tar.gz"
+        tomcat_download_url:      "https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.95/bin/{{ tomcat_download_filename }}"
+        tomcat_download_checksum: "sha512:1c36d0de6ef0c1bab090bfb30908f8cf848510ab83d6140890e2e1db001e8a4d0d5982a53c92e4cc7a736de304b22f461706689c48160e24c299dae7a148a673"
+
+        tomcat_webapps: []
+
+        tomcat_templates:
+          - { src: "{{ playbook_dir }}/templates/tomcat/conf/catalina.policy",      mode: "755", dest: "conf/catalina.policy" }
+
+        tags: [tomcat]
+        when: ('tomcat' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: app_ctrl
+      user: tomcat_usr
+      cmd: "sudo systemctl stop tomcat.service"
+      process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+      wait_until: no_pid
+
+      tags: [app_ctrl]
+      when: ('app_ctrl' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+    - role: app_ctrl
+      user: tomcat_usr
+      cmd: "sudo systemctl start tomcat.service"
+      process_regex: "/[^ ]+/java/current//bin/java -Djava.util.logging.config.file=/[^ ]+/tomcat/current/conf/logging.properties -Djava.util.logging.manager=.*"
+      wait_until: pid
+      process_user: tomcat_usr
+      log: true
+
+      tags: [app_ctrl]
+      when: ('app_ctrl' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
+
+
+  # post roles checks
+  tasks:
+
+    # check log for "Server startup in [0-9]+ (milliseconds|ms)"
+    - name: test - run cmd to check catalina log for "Server startup"
+      become_user: "{{ tomcat_user }}"
+      changed_when: False
+      shell: "grep -E  --only-matching 'Server startup in [0-9]+ (milliseconds|ms)' {{ base_dir }}/tomcat/current/logs/catalina.out"
+      register: has_started
+    - debug:
+        msg: "found: {{has_started.stdout_lines}}"
+    - name: test - check catalina log for "Server startup" - output
+      assert:
+        that:
+          - has_started.rc == 0
+        fail_msg: "'has_started' return code must be 0"
+        success_msg: '"Server startup in [0-9]+ (milliseconds|ms)" was found in catalina.out'
+
+    # check process
+    - name: "test - run cmd to get pid"
+      become_user: "{{ tomcat_user }}"
+      changed_when: False
+      shell: 'GREP_PATTERN="^$CMD_USER[ ]+([0-9]+)[ ]+(.*)$"; 
+            ps ax o user:99,pid,cmd | more | grep -oP "$GREP_PATTERN" | sed -r "s/$GREP_PATTERN/\1-\2/" | grep -E "^[0-9]+-$PROCESS_SEARCH_PATTERN" | sed -r "s/^([0-9]+)-.*$/\1/"'
+      environment:
+        CMD_USER: "{{ tomcat_user }}"
+        PROCESS_SEARCH_PATTERN: "{{ base_dir }}/java/current//bin/java .* org.apache.catalina.startup.Bootstrap start"
+      register: process_running
+    - debug:
+        msg: "pid: {{ process_running.stdout }}, is_number: {{ process_running.stdout is match '[0-9]+' }}"
+    - name: "test - check if process is running - output"
+      assert:
+        that:
+          - process_running.rc == 0
+          - process_running.stdout is match '[0-9]+'
+        fail_msg: "process was not found"
+        success_msg: 'process is running'

@@ -11,6 +11,8 @@
     - name: minimal_root_setup
       vars:
         devops_user: "{{ ansible_user }}"
+      tags: [minimal_root_setup]
+      when: ('minimal_root_setup' in ansible_run_tags) or ('all_roles' in ansible_run_tags)
 
     - role: files
       vars:

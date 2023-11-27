@@ -1,0 +1,22 @@
+---
+- name: local - create download directory
+  delegate_to: localhost
+  changed_when: "False"
+  file:
+    path:   "{{ local_downloaded }}"
+    state:  "directory"
+
+- name: local - download files
+  delegate_to: localhost
+  changed_when: "False"
+  get_url:
+    url:      "{{ item.url }}/{{ item.filename }}"
+    checksum: "{{ item.checksum }}"
+    dest:     "{{ local_downloaded }}"
+    mode:     "{{ item.mode }}"
+    username: "{{ item.username }}"
+    password: "{{ item.password }}"
+  retries: 5
+  delay: 10
+  with_items: "{{ download_files | default([]) }}"
+  no_log: true
