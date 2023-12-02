@@ -1,1 +1,4 @@
 * text eol=lf
+*.sh linguist-detectable=false
+*.nix linguist-detectable=false
+*.py linguist-detectable=false
